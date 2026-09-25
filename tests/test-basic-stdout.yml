@@ -1,0 +1,34 @@
+name: Test basic stdout capture
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          run: printf '%s' "hello world"
+      - name: Assert stdout contains expected output
+        env:
+          ACTUAL: ${{ steps.action.outputs.stdout }}
+        run: |
+          echo "actual: '$ACTUAL'"
+          TRIMMED="$(echo "$ACTUAL" | tr -d '\n\r')"
+          if [ "$TRIMMED" != "hello world" ]; then
+            echo "FAIL: expected 'hello world' but got '$TRIMMED'"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert stderr is empty
+        env:
+          ACTUAL: ${{ steps.action.outputs.stderr }}
+        run: |
+          echo "stderr: '$ACTUAL'"
+          TRIMMED="$(echo "$ACTUAL" | tr -d '\n\r')"
+          if [ -n "$TRIMMED" ]; then
+            echo "FAIL: expected empty stderr but got '$TRIMMED'"
+            exit 1
+          fi
+          echo "PASS"

@@ -1,0 +1,24 @@
+name: Test custom shell
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          run: printf '%s' "sh output"
+          shell: sh
+      - name: Assert stdout contains expected output
+        env:
+          ACTUAL: ${{ steps.action.outputs.stdout }}
+        run: |
+          echo "actual: '$ACTUAL'"
+          TRIMMED="$(echo "$ACTUAL" | tr -d '\n\r')"
+          if [ "$TRIMMED" != "sh output" ]; then
+            echo "FAIL: expected 'sh output' but got '$TRIMMED'"
+            exit 1
+          fi
+          echo "PASS"
